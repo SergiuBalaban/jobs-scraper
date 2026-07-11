@@ -26,7 +26,7 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 import requests
 
-from jobs_parser import is_engineer_role
+from jobs_parser import is_engineer_role, write_parsed_jobs
 
 LOG_FILE = "logs/scrape_run.log"
 
@@ -227,6 +227,9 @@ def main():
 
     save_jobs(output_path, jobs_by_key)
     logger.info(f"Gata. Adăugate {new_count} job-uri noi. Total în {output_path}: {len(jobs_by_key)}")
+
+    parsed_count = write_parsed_jobs(list(jobs_by_key.values()))
+    logger.info(f"jobs_parsed.json rescris cu {parsed_count} job-uri (engineer=True)")
 
     elapsed = int((datetime.now() - run_start).total_seconds())
     h, rem = divmod(elapsed, 3600)

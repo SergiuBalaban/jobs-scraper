@@ -16,6 +16,10 @@ import json
 import re
 from pathlib import Path
 
+# Fișier cu job-urile filtrate (engineer = True), gata de analizat de un AI.
+# Rescris integral de fiecare dată când rulează jobs_parser.py sau jobs_scraper.py.
+PARSED_OUTPUT_FILE = "jobs_parsed.json"
+
 # Verificate PRIMA dată: dacă descrierea conține unul din aceste cuvinte,
 # jobul e exclus direct (engineer = False), indiferent ce mai conține.
 EXCLUDE_STACK_KEYWORDS = [
@@ -75,6 +79,18 @@ def is_engineer_role(description_html):
     return _contains_any(text, ENGINEER_STACK_KEYWORDS)
 
 
+def write_parsed_jobs(jobs, path=PARSED_OUTPUT_FILE):
+    """
+    Rescrie integral PARSED_OUTPUT_FILE cu doar job-urile marcate engineer=True,
+    gata de analizat de un AI. Apelat atât din jobs_parser.py, cât și din
+    jobs_scraper.py, la finalul fiecărei rulări.
+    """
+    engineer_jobs = [job for job in jobs if job.get("engineer") is True]
+    with Path(path).open("w", encoding="utf-8") as f:
+        json.dump(engineer_jobs, f, ensure_ascii=False, indent=2)
+    return len(engineer_jobs)
+
+
 def parse_jobs_file(path):
     """Reaplică is_engineer_role peste toate job-urile din fișierul JSON dat, în loc."""
     with path.open("r", encoding="utf-8") as f:
@@ -90,7 +106,9 @@ def parse_jobs_file(path):
     with path.open("w", encoding="utf-8") as f:
         json.dump(jobs, f, ensure_ascii=False, indent=2)
 
-    return len(jobs), changed
+    parsed_count = write_parsed_jobs(jobs)
+
+    return len(jobs), changed, parsed_count
 
 
 def main():
@@ -98,8 +116,9 @@ def main():
     parser.add_argument("--input", default="jobs.json", help="Fișier JSON de recalculat (default: jobs.json)")
     args = parser.parse_args()
 
-    total, changed = parse_jobs_file(Path(args.input))
+    total, changed, parsed_count = parse_jobs_file(Path(args.input))
     print(f"Procesate {total} job-uri din {args.input}. Valori 'engineer' modificate: {changed}.")
+    print(f"{PARSED_OUTPUT_FILE} rescris cu {parsed_count} job-uri (engineer=True).")
 
 
 if __name__ == "__main__":
