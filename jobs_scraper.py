@@ -18,7 +18,6 @@ import hashlib
 import json
 import logging
 import random
-import re
 import sys
 import time
 from datetime import datetime
@@ -27,21 +26,9 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 import requests
 
+from jobs_parser import is_engineer_role
+
 LOG_FILE = "logs/scrape_run.log"
-
-# Stack-ul tău profesional: dacă unul din aceste cuvinte apare în descrierea
-# job-ului, îl marcăm ca "engineer". Extinde lista după cum e nevoie.
-ENGINEER_STACK_KEYWORDS = [
-    "php", "laravel", "symfony", "python", "javascript", "vue", "react", "angular", "docker",
-]
-
-_HTML_TAG_RE = re.compile(r"<[^>]+>")
-
-
-def is_engineer_role(description_html):
-    """True dacă descrierea (HTML) menționează unul din cuvintele din ENGINEER_STACK_KEYWORDS."""
-    text = _HTML_TAG_RE.sub(" ", description_html or "").lower()
-    return any(re.search(rf"\b{re.escape(kw)}\b", text) for kw in ENGINEER_STACK_KEYWORDS)
 
 logger = logging.getLogger("jobs_scraper")
 
@@ -56,15 +43,16 @@ DETAIL_JOB_URL = "https://www.jobs.ch/en/vacancies/detail/{job_id}"
 # URL de căutare implicit, folosit dacă nu se pasează unul explicit ca argument.
 # Filtrele (category, region, publication-date etc.) se pot schimba în timp;
 # formatul de bază al URL-ului rămâne același.
-DEFAULT_SEARCH_URL = (
-    "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/"
-    "?category=170&category=171&category=174&category=175&category=176&category=177&category=179"
-    "&employment-type=5&language-skill=en&publication-date=30"
-    "&region=7&region=11&region=12&region=13&region=14&region=15"
-    "&term=&jobid=1a04b9c3-6b7d-42e2-b2a7-a1e07ee2b481"
-)
+# DEFAULT_SEARCH_URL = (
+#     "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/"
+#     "?category=170&category=171&category=174&category=175&category=176&category=177&category=179"
+#     "&employment-type=5&language-skill=en&publication-date=30"
+#     "&region=7&region=11&region=12&region=13&region=14&region=15"
+#     "&term=&jobid=1a04b9c3-6b7d-42e2-b2a7-a1e07ee2b481"
+# )
 
 # DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=179&employment-type=5&language-skill=de&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term="
+DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=178&category=179&category=180&employment-type=2&employment-type=5&language-skill=de&language-skill=en&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term="
 
 def build_session():
     s = requests.Session()
