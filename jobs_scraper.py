@@ -52,7 +52,8 @@ DETAIL_JOB_URL = "https://www.jobs.ch/en/vacancies/detail/{job_id}"
 # )
 
 # DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=179&employment-type=5&language-skill=de&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term="
-DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=178&category=179&category=180&employment-type=2&employment-type=5&language-skill=de&language-skill=en&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term="
+# DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=178&category=179&category=180&employment-type=2&employment-type=5&language-skill=de&language-skill=en&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term="
+DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=178&category=179&category=180&employment-type=2&employment-type=5&language-skill=en&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term="
 
 def build_session():
     s = requests.Session()
@@ -222,6 +223,10 @@ def main():
             "job_url": job_url,
             "job_description": description_html,
             "engineer": is_engineer_role(description_html),
+            "german": "",
+            "match": 0,
+            "stack": "",
+            "cover_letter": ""
         }
         new_count += 1
 
