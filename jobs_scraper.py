@@ -18,6 +18,7 @@ import hashlib
 import json
 import logging
 import random
+import re
 import sys
 import time
 from datetime import datetime
@@ -26,7 +27,21 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 import requests
 
-LOG_FILE = "scrape_run.log"
+LOG_FILE = "logs/scrape_run.log"
+
+# Stack-ul tău profesional: dacă unul din aceste cuvinte apare în descrierea
+# job-ului, îl marcăm ca "engineer". Extinde lista după cum e nevoie.
+ENGINEER_STACK_KEYWORDS = [
+    "php", "laravel", "symfony", "python", "javascript", "vue", "react", "angular", "docker",
+]
+
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def is_engineer_role(description_html):
+    """True dacă descrierea (HTML) menționează unul din cuvintele din ENGINEER_STACK_KEYWORDS."""
+    text = _HTML_TAG_RE.sub(" ", description_html or "").lower()
+    return any(re.search(rf"\b{re.escape(kw)}\b", text) for kw in ENGINEER_STACK_KEYWORDS)
 
 logger = logging.getLogger("jobs_scraper")
 
@@ -218,6 +233,7 @@ def main():
             "job_role": detail.get("title", role),
             "job_url": job_url,
             "job_description": description_html,
+            "engineer": is_engineer_role(description_html),
         }
         new_count += 1
 
