@@ -19,7 +19,11 @@ from pathlib import Path
 # Verificate PRIMA dată: dacă descrierea conține unul din aceste cuvinte,
 # jobul e exclus direct (engineer = False), indiferent ce mai conține.
 EXCLUDE_STACK_KEYWORDS = [
-    "java",  # păstrat exclus — roluri Java enterprise/pure de obicei cer expertiză senior pe care nu o ai
+    "java",
+    "golang",
+    "c#",
+    "dotnet", "asp.net",
+    "ruby", "ruby on rails",
 ]
 
 # Verificate doar dacă niciun cuvânt din EXCLUDE_STACK_KEYWORDS nu a fost găsit.
