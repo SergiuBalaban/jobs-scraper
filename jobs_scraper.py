@@ -197,17 +197,19 @@ def main():
             continue
 
         company_slug = detail.get("company_slug", "")
-        job_url = f"https://www.jobs.ch/en/companies/{company_slug}/" if company_slug else ""
+        company_url = f"https://www.jobs.ch/en/companies/{company_slug}/" if company_slug else ""
         city = detail.get("place", item.get("place", ""))
         description_html = detail.get("template_text", "")
+        job_url = DETAIL_API.format(job_id=job_id)
 
         jobs_by_key[key] = {
             "key": key,
-            "role": detail.get("title", role),
-            "name": detail.get("company_name", company_name),
-            "url": job_url,
-            "city": city,
-            "description": description_html,
+            "company_name": detail.get("company_name", company_name),
+            "company_url": company_url,
+            "company_city": city,
+            "job_role": detail.get("title", role),
+            "job_url": job_url,
+            "job_description": description_html,
         }
         new_count += 1
 
