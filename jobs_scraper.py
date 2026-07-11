@@ -20,6 +20,7 @@ import logging
 import random
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
@@ -35,6 +36,7 @@ USER_AGENT = (
 )
 
 DETAIL_API = "https://www.jobs.ch/api/v1/public/search/job/{job_id}"
+DETAIL_JOB_URL = "https://www.jobs.ch/en/vacancies/detail/{job_id}"
 
 # URL de căutare implicit, folosit dacă nu se pasează unul explicit ca argument.
 # Filtrele (category, region, publication-date etc.) se pot schimba în timp;
@@ -109,7 +111,7 @@ def polite_sleep(min_delay, max_delay):
 
 
 def load_existing(path):
-    if path.exists():
+    if path.exists() and path.stat().st_size > 0:
         with path.open("r", encoding="utf-8") as f:
             data = json.load(f)
             return {job["key"]: job for job in data}
@@ -131,6 +133,11 @@ def setup_logging():
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
+    log_path = Path(LOG_FILE)
+    if log_path.exists() and log_path.stat().st_size > 0:
+        with log_path.open("a", encoding="utf-8") as f:
+            f.write("\n")
+
     file_handler = logging.FileHandler(LOG_FILE, mode="a", encoding="utf-8")
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
@@ -151,10 +158,11 @@ def main():
     )
     parser.add_argument("--output", default="jobs.json", help="Fișier JSON de output (default: jobs.json)")
     parser.add_argument("--min-delay", type=float, default=1.0, help="Delay minim între cereri (secunde)")
-    parser.add_argument("--max-delay", type=float, default=3.0, help="Delay maxim între cereri (secunde)")
+    parser.add_argument("--max-delay", type=float, default=2.0, help="Delay maxim între cereri (secunde)")
     args = parser.parse_args()
 
     setup_logging()
+    run_start = datetime.now()
     output_path = Path(args.output)
     session = build_session()
 
@@ -200,7 +208,7 @@ def main():
         company_url = f"https://www.jobs.ch/en/companies/{company_slug}/" if company_slug else ""
         city = detail.get("place", item.get("place", ""))
         description_html = detail.get("template_text", "")
-        job_url = DETAIL_API.format(job_id=job_id)
+        job_url = DETAIL_JOB_URL.format(job_id=job_id)
 
         jobs_by_key[key] = {
             "key": key,
@@ -214,7 +222,12 @@ def main():
         new_count += 1
 
     save_jobs(output_path, jobs_by_key)
-    logger.info(f"Gata. Adăugate {new_count} job-uri noi. Total în {output_path}: {len(jobs_by_key)}\n")
+    logger.info(f"Gata. Adăugate {new_count} job-uri noi. Total în {output_path}: {len(jobs_by_key)}")
+
+    elapsed = int((datetime.now() - run_start).total_seconds())
+    h, rem = divmod(elapsed, 3600)
+    m, s = divmod(rem, 60)
+    logger.info(f"Timp de execuție: {h:02d}:{m:02d}:{s:02d}")
 
 
 if __name__ == "__main__":
