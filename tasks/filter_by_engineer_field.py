@@ -18,7 +18,7 @@ from pathlib import Path
 
 # Fișier cu job-urile filtrate (engineer = True), gata de analizat de un AI.
 # Rescris integral de fiecare dată când rulează filter_by_engineer_field.py sau jobs_scraper.py.
-PARSED_OUTPUT_FILE = "../json/jobs_filtered.json"
+PARSED_OUTPUT_FILE = "json/jobs_filtered.json"
 
 # Verificate PRIMA dată: dacă descrierea conține unul din aceste cuvinte,
 # jobul e exclus direct (engineer = False), indiferent ce mai conține.
@@ -122,7 +122,7 @@ def parse_jobs_file(path):
 
 def main():
     parser = argparse.ArgumentParser(description="Recalculează câmpul 'engineer' din jobs.json")
-    parser.add_argument("--input", default="jobs.json", help="Fișier JSON de recalculat (default: jobs.json)")
+    parser.add_argument("--input", default="json/jobs.json", help="Fișier JSON de recalculat (default: jobs.json)")
     args = parser.parse_args()
 
     total, changed, parsed_count = parse_jobs_file(Path(args.input))
