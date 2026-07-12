@@ -26,8 +26,10 @@ EXCLUDE_STACK_KEYWORDS = [
     "java",
     "golang",
     "c#",
-    "dotnet", "asp.net",
+    "dotnet", "asp.net", ".net",
     "ruby", "ruby on rails",
+    'informatiker',
+    'qualitätssicherung',
 ]
 
 # Verificate doar dacă niciun cuvânt din EXCLUDE_STACK_KEYWORDS nu a fost găsit.
@@ -64,7 +66,17 @@ _HTML_TAG_RE = re.compile(r"<[^>]+>")
 
 
 def _contains_any(text, keywords):
-    return any(re.search(rf"\b{re.escape(kw)}\b", text) for kw in keywords)
+    """
+    Caută fiecare cuvânt-cheie ca „unitate" separată, delimitată de caractere
+    non-alfanumerice (sau start/sfârșit de text) în ambele capete.
+    Nu folosim \\b: pentru cuvinte-cheie care încep/se termină cu un caracter
+    non-word (ex: "c#", ".net"), \\b nu creează niciodată o graniță acolo,
+    deci regexul nu s-ar potrivi niciodată.
+    """
+    return any(
+        re.search(rf"(?<![a-z0-9]){re.escape(kw)}(?![a-z0-9])", text)
+        for kw in keywords
+    )
 
 
 def is_engineer_role(description_html):
