@@ -26,7 +26,7 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 import requests
 
-from jobs_parser import is_engineer_role, write_parsed_jobs
+from tasks.filter_by_engineer_field import is_engineer_role, write_parsed_jobs
 
 LOG_FILE = "logs/scrape_run.log"
 
@@ -51,9 +51,9 @@ DETAIL_JOB_URL = "https://www.jobs.ch/en/vacancies/detail/{job_id}"
 #     "&term=&jobid=1a04b9c3-6b7d-42e2-b2a7-a1e07ee2b481"
 # )
 
-# DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=179&employment-type=5&language-skill=de&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term="
-# DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=178&category=179&category=180&employment-type=2&employment-type=5&language-skill=de&language-skill=en&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term="
-DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=178&category=179&category=180&employment-type=2&employment-type=5&language-skill=en&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term="
+# DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=178&category=179&category=180&employment-type=2&employment-type=5&language-skill=de&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term=" #German
+# DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=178&category=179&category=180&employment-type=2&employment-type=5&language-skill=en&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term=" #English
+DEFAULT_SEARCH_URL = "https://www.jobs.ch/en/vacancies/information-technology-telecom/testing-audit-security/?category=170&category=171&category=174&category=175&category=176&category=177&category=178&category=179&category=180&employment-type=2&employment-type=5&language-skill=de&language-skill=en&publication-date=30&region=7&region=11&region=12&region=13&region=14&region=15&term=" #English + German
 
 def build_session():
     s = requests.Session()
@@ -213,6 +213,8 @@ def main():
         city = detail.get("place", item.get("place", ""))
         description_html = detail.get("template_text", "")
         job_url = DETAIL_JOB_URL.format(job_id=job_id)
+        publication_date = detail.get("publication_date", "")
+        application_url = detail.get("application_url", "")
 
         jobs_by_key[key] = {
             "key": key,
@@ -226,7 +228,9 @@ def main():
             "german": "",
             "match": 0,
             "stack": "",
-            "cover_letter": ""
+            "cover_letter": "",
+            "application_url": application_url,
+            "publication_date": publication_date
         }
         new_count += 1
 

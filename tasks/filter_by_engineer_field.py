@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-jobs_parser.py - Recalculează câmpul `engineer` din jobs.json.
+filter_by_engineer_field.py - Recalculează câmpul `engineer` din jobs.json.
 
 Ține logica de detectare separat de jobs_scraper.py, ca să poți edita
 ENGINEER_STACK_KEYWORDS / EXCLUDE_STACK_KEYWORDS și să re-aplici regulile
@@ -8,7 +8,7 @@ peste job-urile deja salvate, fără să mai fie nevoie de un nou fetch de la
 jobs.ch (descrierea HTML e deja stocată în `job_description`).
 
 Usage:
-    python jobs_parser.py [--input jobs.json]
+    python filter_by_engineer_field.py [--input jobs.json]
 """
 
 import argparse
@@ -17,8 +17,8 @@ import re
 from pathlib import Path
 
 # Fișier cu job-urile filtrate (engineer = True), gata de analizat de un AI.
-# Rescris integral de fiecare dată când rulează jobs_parser.py sau jobs_scraper.py.
-PARSED_OUTPUT_FILE = "jobs_parsed.json"
+# Rescris integral de fiecare dată când rulează filter_by_engineer_field.py sau jobs_scraper.py.
+PARSED_OUTPUT_FILE = "../json/jobs_filtered.json"
 
 # Verificate PRIMA dată: dacă descrierea conține unul din aceste cuvinte,
 # jobul e exclus direct (engineer = False), indiferent ce mai conține.
@@ -28,8 +28,6 @@ EXCLUDE_STACK_KEYWORDS = [
     "c#",
     "dotnet", "asp.net", ".net",
     "ruby", "ruby on rails",
-    'informatiker',
-    'qualitätssicherung',
 ]
 
 # Verificate doar dacă niciun cuvânt din EXCLUDE_STACK_KEYWORDS nu a fost găsit.
@@ -55,11 +53,10 @@ ENGINEER_STACK_KEYWORDS = [
     # --- Titluri de rol DE (piață elvețiană) ---
     "softwareentwickler", "entwickler", "backend-entwickler",
     "full-stack-entwickler", "softwarearchitekt", "systemarchitekt",
-    "informatiker",
 
     # --- Carve-out QA Tester / Python Developer (schimbare de carieră) ---
     "qa engineer", "qa tester", "test automation", "test engineer",
-    "software tester", "softwaretester", "qualitätssicherung",
+    "software tester", "softwaretester",
 ]
 
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
@@ -94,7 +91,7 @@ def is_engineer_role(description_html):
 def write_parsed_jobs(jobs, path=PARSED_OUTPUT_FILE):
     """
     Rescrie integral PARSED_OUTPUT_FILE cu doar job-urile marcate engineer=True,
-    gata de analizat de un AI. Apelat atât din jobs_parser.py, cât și din
+    gata de analizat de un AI. Apelat atât din filter_by_engineer_field.py, cât și din
     jobs_scraper.py, la finalul fiecărei rulări.
     """
     engineer_jobs = [job for job in jobs if job.get("engineer") is True]
