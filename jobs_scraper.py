@@ -160,7 +160,7 @@ def main():
         help="URL de căutare jobs.ch (cu filtrele deja aplicate). "
              "Dacă lipsește, se folosește DEFAULT_SEARCH_URL din script.",
     )
-    parser.add_argument("--output", default="jobs.json", help="Fișier JSON de output (default: jobs.json)")
+    parser.add_argument("--output", default="json/jobs.json", help="Fișier JSON de output (default: jobs.json)")
     parser.add_argument("--min-delay", type=float, default=1.0, help="Delay minim între cereri (secunde)")
     parser.add_argument("--max-delay", type=float, default=2.0, help="Delay maxim între cereri (secunde)")
     args = parser.parse_args()
