@@ -14,11 +14,18 @@ Usage:
 import argparse
 import json
 import re
+from datetime import datetime, timedelta
 from pathlib import Path
 
-# Fișier cu job-urile filtrate (engineer = True), gata de analizat de un AI.
-# Rescris integral de fiecare dată când rulează filter_jobs_for_AI.py sau jobs_scraper.py.
+# Fișier cu job-urile filtrate (engineer = True, deleted != 1), gata de
+# analizat de un AI. Rescris integral de fiecare dată când rulează
+# filter_jobs_for_AI.py sau jobs_scraper.py.
 PARSED_OUTPUT_FILE = "json/jobs_filtered.json"
+
+# Un job e considerat "deleted" (rezolvat sau expirat) dacă are match=10
+# (deja găsit un match perfect) sau a fost publicat de cel puțin atâtea zile
+# (aproximare pentru "1 lună").
+DELETE_AFTER_DAYS = 30
 
 # Verificate PRIMA dată: dacă descrierea conține unul din aceste cuvinte,
 # jobul e exclus direct (engineer = False), indiferent ce mai conține.
@@ -88,36 +95,65 @@ def is_engineer_role(description_html):
     return _contains_any(text, ENGINEER_STACK_KEYWORDS)
 
 
+def is_deleted_job(job):
+    """
+    True dacă jobul e considerat rezolvat sau expirat: match perfect (10)
+    sau publicat de cel puțin DELETE_AFTER_DAYS zile.
+    """
+    if job.get("match") == 10:
+        return True
+
+    publication_date = job.get("publication_date")
+    if not publication_date:
+        return False
+
+    try:
+        pub_dt = datetime.fromisoformat(publication_date)
+    except ValueError:
+        return False
+
+    now = datetime.now(pub_dt.tzinfo)
+    return now - pub_dt >= timedelta(days=DELETE_AFTER_DAYS)
+
+
 def write_parsed_jobs(jobs, path=PARSED_OUTPUT_FILE):
     """
-    Rescrie integral PARSED_OUTPUT_FILE cu doar job-urile marcate engineer=True,
-    gata de analizat de un AI. Apelat atât din filter_jobs_for_AI.py, cât și din
-    jobs_scraper.py, la finalul fiecărei rulări.
+    Rescrie integral PARSED_OUTPUT_FILE cu doar job-urile marcate engineer=True
+    și deleted != 1, gata de analizat de un AI. Apelat atât din
+    filter_jobs_for_AI.py, cât și din jobs_scraper.py, la finalul fiecărei rulări.
     """
-    engineer_jobs = [job for job in jobs if job.get("engineer") is True]
+    engineer_jobs = [
+        job for job in jobs
+        if job.get("engineer") is True and job.get("deleted") != 1
+    ]
     with Path(path).open("w", encoding="utf-8") as f:
         json.dump(engineer_jobs, f, ensure_ascii=False, indent=2)
     return len(engineer_jobs)
 
 
 def parse_jobs_file(path):
-    """Reaplică is_engineer_role peste toate job-urile din fișierul JSON dat, în loc."""
+    """Reaplică is_engineer_role și is_deleted_job peste toate job-urile din fișierul JSON dat, în loc."""
     with path.open("r", encoding="utf-8") as f:
         jobs = json.load(f)
 
     changed = 0
+    deleted_count = 0
     for job in jobs:
         new_value = is_engineer_role(job.get("job_description", ""))
         if job.get("engineer") != new_value:
             changed += 1
         job["engineer"] = new_value
 
+        job["deleted"] = 1 if is_deleted_job(job) else 0
+        if job["deleted"] == 1:
+            deleted_count += 1
+
     with path.open("w", encoding="utf-8") as f:
         json.dump(jobs, f, ensure_ascii=False, indent=2)
 
     parsed_count = write_parsed_jobs(jobs)
 
-    return len(jobs), changed, parsed_count
+    return len(jobs), changed, deleted_count, parsed_count
 
 
 def main():
@@ -125,9 +161,10 @@ def main():
     parser.add_argument("--input", default="json/jobs.json", help="Fișier JSON de recalculat (default: jobs.json)")
     args = parser.parse_args()
 
-    total, changed, parsed_count = parse_jobs_file(Path(args.input))
+    total, changed, deleted_count, parsed_count = parse_jobs_file(Path(args.input))
     print(f"Procesate {total} job-uri din {args.input}. Valori 'engineer' modificate: {changed}.")
-    print(f"{PARSED_OUTPUT_FILE} rescris cu {parsed_count} job-uri (engineer=True).")
+    print(f"Job-uri marcate 'deleted': {deleted_count}.")
+    print(f"{PARSED_OUTPUT_FILE} rescris cu {parsed_count} job-uri (engineer=True, deleted=0).")
 
 
 if __name__ == "__main__":
