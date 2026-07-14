@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-filter_by_engineer_field.py - Recalculează câmpul `engineer` din jobs.json.
+filter_jobs_for_AI.py - Recalculează câmpul `engineer` din jobs.json.
 
 Ține logica de detectare separat de jobs_scraper.py, ca să poți edita
 ENGINEER_STACK_KEYWORDS / EXCLUDE_STACK_KEYWORDS și să re-aplici regulile
@@ -8,7 +8,7 @@ peste job-urile deja salvate, fără să mai fie nevoie de un nou fetch de la
 jobs.ch (descrierea HTML e deja stocată în `job_description`).
 
 Usage:
-    python filter_by_engineer_field.py [--input jobs.json]
+    python filter_jobs_for_AI.py [--input jobs.json]
 """
 
 import argparse
@@ -17,7 +17,7 @@ import re
 from pathlib import Path
 
 # Fișier cu job-urile filtrate (engineer = True), gata de analizat de un AI.
-# Rescris integral de fiecare dată când rulează filter_by_engineer_field.py sau jobs_scraper.py.
+# Rescris integral de fiecare dată când rulează filter_jobs_for_AI.py sau jobs_scraper.py.
 PARSED_OUTPUT_FILE = "json/jobs_filtered.json"
 
 # Verificate PRIMA dată: dacă descrierea conține unul din aceste cuvinte,
@@ -91,7 +91,7 @@ def is_engineer_role(description_html):
 def write_parsed_jobs(jobs, path=PARSED_OUTPUT_FILE):
     """
     Rescrie integral PARSED_OUTPUT_FILE cu doar job-urile marcate engineer=True,
-    gata de analizat de un AI. Apelat atât din filter_by_engineer_field.py, cât și din
+    gata de analizat de un AI. Apelat atât din filter_jobs_for_AI.py, cât și din
     jobs_scraper.py, la finalul fiecărei rulări.
     """
     engineer_jobs = [job for job in jobs if job.get("engineer") is True]

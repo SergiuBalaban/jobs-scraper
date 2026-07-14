@@ -26,7 +26,7 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 import requests
 
-from tasks.filter_by_engineer_field import is_engineer_role, write_parsed_jobs
+from tasks.filter_jobs_for_AI import is_engineer_role, write_parsed_jobs
 
 LOG_FILE = "logs/scrape_run.log"
 
